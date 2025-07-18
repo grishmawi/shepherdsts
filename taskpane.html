@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>ChatGPT Translator</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    textarea, select, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 14px;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>Translate Selected Text</h2>
+  <textarea id="inputText" rows="4" placeholder="Selected text will appear here..."></textarea>
+  <select id="targetLanguage">
+    <option value="French">French</option>
+    <option value="Spanish">Spanish</option>
+    <option value="German">German</option>
+    <option value="Arabic">Arabic</option>
+    <option value="Chinese">Chinese</option>
+  </select>
+  <button onclick="translateText()">Translate</button>
+  <div id="result"></div>
+
+  <script>
+    Office.onReady(() => {
+      Word.run(context => {
+        const selection = context.document.getSelection();
+        selection.load("text");
+        return context.sync().then(() => {
+          document.getElementById("inputText").value = selection.text;
+        });
+      });
+    });
+
+    async function translateText() {
+      const text = document.getElementById("inputText").value;
+      const targetLanguage = document.getElementById("targetLanguage").value;
+
+      const response = await fetch("http://localhost:8000/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text, target_language: targetLanguage })
+      });
+
+      const data = await response.json();
+      document.getElementById("result").innerText = data.translation || "Translation failed.";
+    }
+  </script>
+</body>
+</html>
